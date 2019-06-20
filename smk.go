@@ -18,10 +18,10 @@ func (c CityIsEmptyError) Error() string {
 
 // GetTemperature - 指定された都市の気温を取得します.
 // @params
-//   - city: 都市名
+//   city - 都市名
 // @returns
-//   - temperature: 気温. 取得できなかった場合は空文字.
-//   - err: エラー
+//   temperature - 気温. 取得できなかった場合は空文字.
+//   err - エラー
 func GetTemperature(city string) (temperature string, err error) {
 	if city == "" {
 		return "", CityIsEmptyError{}
