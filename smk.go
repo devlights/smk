@@ -9,13 +9,24 @@ import (
 
 var url = "https://www.jma.go.jp/jp/yoho/332.html"
 
+// CityIsEmptyError - パラメータ[city]が空の場合のエラー
+type CityIsEmptyError struct{}
+
+func (c CityIsEmptyError) Error() string {
+	return "city is empty."
+}
+
 // GetTemperature - 指定された都市の気温を取得します.
 // @params
 //   - city: 都市名
 // @returns
-//   - temperature: 気温
+//   - temperature: 気温. 取得できなかった場合は空文字.
 //   - err: エラー
 func GetTemperature(city string) (temperature string, err error) {
+	if city == "" {
+		return "", CityIsEmptyError{}
+	}
+
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
 		log.Println(err.Error())
