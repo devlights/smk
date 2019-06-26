@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-var url = "https://www.jma.go.jp/jp/yoho/332.html"
+var url = "https://www.data.jma.go.jp/obd/stats/data/mdrr/tem_rct/alltable/mxtemsadext00.html"
 
 // CityIsEmptyError - パラメータ[city]が空の場合のエラー
 type CityIsEmptyError struct{}
@@ -27,7 +29,20 @@ func GetTemperature(city string) (temperature string, err error) {
 		return "", CityIsEmptyError{}
 	}
 
-	doc, err := goquery.NewDocument(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Println(err.Error())
+		return "", err
+	}
+
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		log.Println(err.Error())
 		return "", err
@@ -35,9 +50,12 @@ func GetTemperature(city string) (temperature string, err error) {
 
 	temperature = ""
 
-	doc.Find(".city").Each(func(i int, s *goquery.Selection) {
-		if s.Text() == city {
-			temperature = s.SiblingsFiltered(".max").Text()
+	doc.Find("tr.mtx").Each(func(i int, s *goquery.Selection) {
+		cityElem := s.ChildrenFiltered("td:nth-child(3)")
+		temperatureElem := s.ChildrenFiltered("td:nth-child(4)")
+
+		if strings.Contains(cityElem.Text(), city) {
+			temperature = temperatureElem.Text()
 		}
 	})
 
@@ -49,6 +67,11 @@ func main() {
 	temperature, err := GetTemperature(city)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if temperature == "" {
+		fmt.Println("見つかりませんでした...")
+		return
 	}
 
 	fmt.Println(city, temperature)

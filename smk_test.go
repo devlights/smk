@@ -36,15 +36,17 @@ func TestGetTemperatureCityIsEmpty(t *testing.T) {
 		t.Error("都市を空で指定したのにエラーが発生していない")
 	}
 
-	if err.Error() == "" {
-		t.Error("エラーメッセージが取得できない")
+	if err != nil {
+		if err.Error() == "" {
+			t.Error("エラーメッセージが取得できない")
+		}
 	}
 }
 
 func TestGetTemperatureNotExistsCity(t *testing.T) {
 	// Arrange
 	cities := []string{
-		"青森",
+		"ロンドン",
 	}
 
 	for _, city := range cities {
