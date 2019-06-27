@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -55,7 +57,7 @@ func GetTemperature(city string) (temperature string, err error) {
 		temperatureElem := s.ChildrenFiltered("td:nth-child(4)")
 
 		if strings.Contains(cityElem.Text(), city) {
-			temperature = temperatureElem.Text()
+			temperature = strings.Trim(temperatureElem.Text(), " ]")
 		}
 	})
 
@@ -63,16 +65,26 @@ func GetTemperature(city string) (temperature string, err error) {
 }
 
 func main() {
-	city := "神戸"
-	temperature, err := GetTemperature(city)
+	var (
+		city = flag.String("city", "", "都市名")
+	)
+
+	flag.Parse()
+
+	if *city == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	temperature, err := GetTemperature(*city)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if temperature == "" {
 		fmt.Println("見つかりませんでした...")
-		return
+		os.Exit(1)
 	}
 
-	fmt.Println(city, temperature)
+	fmt.Println(*city, temperature)
 }
